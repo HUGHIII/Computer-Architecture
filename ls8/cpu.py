@@ -9,6 +9,7 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 256
         self.register = [0] * 8
+        self.pc = 0
 
 
     def load(self):
@@ -70,4 +71,7 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        # IR local variable in run method
+        # make IR = mem address in pc reg
+        IR = self.ram_read(self.pc)
+        
