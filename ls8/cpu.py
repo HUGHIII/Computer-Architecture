@@ -11,6 +11,12 @@ HLT = 0b00000001
 MUL = 0b10100010
 PUSH = 0b01000101
 POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
 
 class CPU:
     """Main CPU class."""
@@ -23,6 +29,7 @@ class CPU:
         self.running = True
         self.stackPointer = 0xf4
         self.reg[7] = self.stackPointer
+        self.flags = 0b00000000
 
 
 
@@ -60,9 +67,9 @@ class CPU:
             print(f"FileNotFound: {sys.argv[1]}")
             sys.exit(2)
 
-        for i in self.ram:
+        # for i in self.ram:
 
-            print(i)
+        #     print(i)
 
 
 
@@ -92,6 +99,17 @@ class CPU:
         #elif op == "SUB": etc
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "CMP":
+            if self.reg[reg_a] < self.reg[reg_b]:
+                self.flags = 0b00000100
+
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.flags =  0b00000010
+
+            elif self.reg[reg_a] == self.reg[reg_b]:
+                self.flags =  0b00000001
+            else:
+                self.flags = 0b00000000
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -130,6 +148,8 @@ class CPU:
             # instruction register, read memory address stored in register
             # for i in range(256):
             #     print(self.ram[i],end = "--")
+            # for i in range(8):
+            #     print(self.reg[i],end = "--")
 
             # self.trace()
             IR = self.ram_read(self.pc)
@@ -180,6 +200,44 @@ class CPU:
                 self.stackPointer += 1
 
                 self.pc += 2
+
+            # elif IR == CALL:
+            #     callCounter = self.pc + 2
+            #     self.stackPointer -= 1
+            #     self.ram[self.stackPointer] = callCounter
+            #     self.pc = self.reg[self.ram_read(self.pc + 1)]
+
+            # elif IR == RET:
+            #     popVal = self.ram[self.stackPointer]
+            #     self.pc = popVal
+            #     self.stackPointer += 1
+
+            elif IR == CMP:
+                reg_a = operand_a
+                reg_b = operand_b
+                self.alu("CMP",reg_a,reg_b)
+                self.pc += 3
+
+            elif IR == JMP:
+                regAddr = operand_a
+                self.pc = self.reg[regAddr]
+            
+            elif IR == JEQ:
+                if self.flags == 1:
+                    regAddr = operand_a
+                    self.pc = self.reg[regAddr]
+                else:
+                    self.pc += 2
+            
+            elif IR == JNE:
+                if self.flags != 1:
+                    regAddr = operand_a
+                    self.pc = self.reg[regAddr]
+                else:
+                    self.pc += 2
+
+
+            
 
 
             
