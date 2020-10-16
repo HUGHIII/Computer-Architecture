@@ -8,6 +8,9 @@ import sys
 LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
+MUL = 0b10100010
+PUSH = 0b01000101
+POP = 0b01000110
 
 class CPU:
     """Main CPU class."""
@@ -18,6 +21,8 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.running = True
+        self.stackPointer = 0xf4
+        self.reg[7] = self.stackPointer
 
 
 
@@ -111,6 +116,8 @@ class CPU:
         print()
 
 
+
+
     def ram_read(self,MAR):
         return self.ram[MAR]
 
@@ -132,6 +139,7 @@ class CPU:
             if IR == HLT:
                 # exit
                 self.running = False
+
             elif IR == LDI:
                 # set specified register to specified value
                 self.reg[operand_a] = operand_b
@@ -141,6 +149,41 @@ class CPU:
                 # print value from specified register
                 print(self.reg[operand_a])
                 self.pc += 2
+            
+            elif IR == MUL:
+                num = self.reg[operand_a] * self.reg[operand_b]
+                self.reg[operand_a] = num
+                self.pc += 3
+
+            elif IR == PUSH:
+                # Decrement the stack pointer
+                self.stackPointer -= 1
+
+                # Grab the value out of the given register
+                reg_num = self.ram[self.pc + 1]
+                value = self.reg[reg_num] # this is what we want to push
+
+                # Copy the value onto the stack
+                self.ram[self.stackPointer] = value
+                 
+
+                self.pc += 2
+                #print(memory[0xf0:0xf4])
+            
+            elif IR == POP:
+                topStack = self.stackPointer
+                val = self.ram[topStack]
+
+                reg_num = self.ram[self.pc + 1]
+                self.reg[reg_num] = val
+
+                self.stackPointer += 1
+
+                self.pc += 2
+
+
+            
+
             else:
                 print(f'unknown instruction {IR} at address {self.pc}')
                 self.running = False 
